@@ -2,18 +2,37 @@ import 'react-native-gesture-handler';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { View, Text, StyleSheet, Pressable, TextInput, ScrollView } from 'react-native';
 import React, { useState } from 'react';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import Meta from '@/components/Meta';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 export default function App() {
-  const [meta, addmeta] = useState('');
+  const [meta, setMeta] = useState('');
   const [metas, setMetas] = useState([]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [date, setDate] = useState(new Date());
 
   const handleMeta = () => {
     if (meta.trim()) {
-      setMetas([...metas, meta]);
-      addmeta('');
+      setShowDatePicker(true); 
     }
+  };
+
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      setDate(selectedDate);
+      const formattedDate = selectedDate.toLocaleDateString(); 
+      const daysLeft = calculateDaysLeft(selectedDate); 
+      setMetas([...metas, { text: meta, date: formattedDate, daysLeft }]);
+      setMeta(''); 
+    }
+  };
+
+  const calculateDaysLeft = (targetDate) => {
+    const today = new Date();
+    const timeDiff = targetDate - today; 
+    const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
+    return daysLeft > 0 ? daysLeft : 0; 
   };
 
   const handleDelete = (index) => {
@@ -27,11 +46,17 @@ export default function App() {
       <View style={styles.container}>
         <View style={styles.taskwrapper}>
           <Text style={styles.title}>Metas</Text>
-          <ScrollView style={styles.metaContainer}>
+          <ScrollView contentContainerStyle={styles.metaContainer}>
             {metas.map((meta, index) => (
-              <TouchableOpacity key={index} onPress={() => handleDelete(index)}>
-                <Meta text={meta} />
-              </TouchableOpacity>
+              <View key={index} style={styles.metaItem}>
+                <Meta text={`${meta.text} - ${meta.date}`} />
+                <Text style={styles.daysLeftText}>
+                  {meta.daysLeft > 0 ? `Falta ${meta.daysLeft} dias para a sua meta` : 'Meta expirada'}
+                </Text>
+                <Pressable onPress={() => handleDelete(index)}>
+                  <Text style={styles.deleteText}>Excluir</Text>
+                </Pressable>
+              </View>
             ))}
           </ScrollView>
         </View>
@@ -39,14 +64,23 @@ export default function App() {
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
-            placeholder="Adicione uma nova meta"
+            placeholder="Nome da meta"
             value={meta}
-            onChangeText={text => addmeta(text)}
+            onChangeText={text => setMeta(text)}
           />
           <Pressable style={styles.addButton} onPress={handleMeta}>
             <Text style={styles.addButtonText}>+</Text>
           </Pressable>
         </View>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+          />
+        )}
       </View>
     </GestureHandlerRootView>
   );
@@ -62,6 +96,7 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: 30,
     width: '100%',
+    flex: 1,
   },
   title: {
     fontSize: 24,
@@ -71,15 +106,32 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   metaContainer: {
+    flexGrow: 1,
     width: '100%',
-    maxHeight: '70%',
+    paddingBottom: 70, 
+  },
+  metaItem: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  daysLeftText: {
+    fontSize: 14,
+    color: 'gray',
+  },
+  deleteText: {
+    color: 'red',
+    fontSize: 16,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 30,
     position: 'absolute',
-    bottom: 60,
+    bottom: 10, 
     left: 0,
     right: 0,
   },
