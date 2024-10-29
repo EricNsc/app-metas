@@ -1,22 +1,22 @@
-import { View, Text, StyleSheet } from 'react-native'
-import React from 'react'
+// components/Meta.js
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 
-const Meta = (props) => {
+const Meta = ({ children }) => {
   return (
-    <View style={styles.item}>
-      <Text>{props.text}</Text>
+    <View style={styles.metaContainer}>
+      {children}
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
-    item: {
-        backgroundColor: 'lightgray',
-        padding: 15,
-        marginVertical: 8,
-        marginHorizontal: 15,
-        borderRadius: 20,
-      },
-})
+  metaContainer: {
+    flexDirection: 'row', 
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%', 
+  },
+});
 
 export default Meta;
